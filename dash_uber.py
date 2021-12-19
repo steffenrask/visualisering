@@ -5,7 +5,10 @@ Created on Sat Dec 18 16:05:02 2021
 
 @author: steffenrask
 
-Dashboard inspireret af Dash Uber APp
+Dashboard inspireret af Dash Uber APP
+https://dash.gallery/dash-uber-rides-demo/
+https://github.com/plotly/dash-sample-apps/blob/main/apps/dash-uber-rides-demo/app.py
+
 """
 
 
