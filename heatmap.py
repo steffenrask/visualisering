@@ -46,9 +46,9 @@ plt.show(renderer='browser')
 
 ff_data = pd.read_csv('forestfires.csv', encoding='utf-8')
 
-asd = pd.to_datetime(ff_data['month'], format='%b').dt.month
+# asd = pd.to_datetime(ff_data['month'], format='%b').dt.month
 
-ff_data['asd'] = asd
+# ff_data['asd'] = asd
 
 # Count
 count = ff_data.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)
@@ -57,38 +57,38 @@ count = ff_data.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)
 fires=count.pivot_table(index='Y', columns='X', values='fires')
 
 #load an image
-forestfires = Image.open("forestfires.jpg")
+img = Image.open("forestfires.jpg")
 
 h = px.imshow(fires)
 
-h.update_layout(
-                images= [dict(
-                    source='forestfires',
-                    xref="paper", yref="paper",
-                    x=0, y=1,
-                    sizex=0.5, sizey=0.5,
-                    xanchor="left",
-                    yanchor="top",
-                    #sizing="stretch",
-                    layer="above")])
+# Add images
+h.add_layout_image(
+        dict(
+            source=img,
+            xref="paper",
+            yref="paper",
+            sizex=1,
+            sizey=1,
+            layer="below")
+)
 
 h.show(renderer='chrome')
 
+#%% TAKE 3
 
-#%% TAKE 3 MED GO
+import plotly.express as px
+import plotly.graph_objects as go
+from skimage import data
 
 ff_data = pd.read_csv('forestfires.csv', encoding='utf-8')
+
+# Count
 count = ff_data.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)
+
+#make the df heatmap friendly
 fires=count.pivot_table(index='Y', columns='X', values='fires')
 
-heatmap = go.Heatmap(fires)
-
-forestfires = Image.open("forestfires.jpg")
-
-heatmap.add_layout_image(
-        dict(
-            source="forestfires",
-            xref="x",
-            yref="y",
-            layer="below"))       
-h.show(renderer='chrome')
+img = Image.open("forestfires.jpg")
+fig = px.imshow(img)
+fig.add_trace(go.Heatmap(
+fig.show(renderer='chrome')
