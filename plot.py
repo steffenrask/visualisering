@@ -14,6 +14,7 @@ data = pd.read_csv(path + "forestfires.csv")
 
 
 print(data)
+print(min(data["Y"]))
 
 
         
@@ -97,6 +98,42 @@ plt.bar(x_wind,y_wind, width=0.5)
 plt.ylabel('number of fires')
 plt.xlabel('wind')
 plt.show()
+
+
+#%%
+
+mean_deg = [4.5, 6.2, 9.2, 10.7, 14, 18.8, 21.7, 21.6, 18.4, 13.2, 8.2, 5.4]
+
+
+month = ["jan", "feb", "mar", "april", "may", "june", "july", "aug", "sep", "oct", "nov", "dec"]
+
+
+
+plt.bar(month,mean_deg, width=0.5)
+plt.ylabel('mean degrees')
+#plt.xlabel('month')
+plt.show()
+
+#%%
+
+days_with_rain = [10, 9, 6, 9, 10, 5, 3, 3, 5, 9, 9, 11]
+
+month = ["jan", "feb", "mar", "april", "may", "june", "july", "aug", "sep", "oct", "nov", "dec"]
+
+
+
+plt.bar(month,days_with_rain, width=0.5)
+plt.ylabel('no. days with rain')
+#plt.xlabel('wind')
+plt.show()
+
+
+
+
+
+
+
+
 
 
 
