@@ -67,9 +67,9 @@ app.layout = html.Div([
                          style = {'textAlign':'center', 'font-family' : 'Roboto'}),        
                  
                  html.Div([
-                     dcc.Dropdown(id='selections',
+                     dcc.RadioItems(id='selections',
                          options=month_options,
-                         value=['all'],
+                         value='all',
                          style={'width':'50%','display':'inline-block'})
                 ]),
                  
@@ -97,31 +97,10 @@ def update_output(selection):
     
     #Pick data for chosen single month(s) or all:
     mydata = ff_data
-
-    if selection == 'jan':
-        mydata = ff_data[ff_data['month'] == 'jan'] 
-    if selection == 'feb':
-        mydata = ff_data[ff_data['month'] == 'feb']
-    if selection == 'mar':
-        mydata = ff_data[ff_data['month'] == 'mar']
-    if selection == 'apr':
-        mydata = ff_data[ff_data['month'] == 'apr'] 
-    if selection == 'may':
-        mydata = ff_data[ff_data['month'] == 'may']
-    if selection == 'jun':
-        mydata = ff_data[ff_data['month'] == 'jun']
-    if selection == 'juk':
-        mydata = ff_data[ff_data['month'] == 'jul'] 
-    if selection == 'aug':
-        mydata = ff_data[ff_data['month'] == 'aug']
-    if selection == 'sep':
-        mydata = ff_data[ff_data['month'] == 'sep']
-    if selection == 'oct':
-        mydata = ff_data[ff_data['month'] == 'oct'] 
-    if selection == 'nov':
-        mydata = ff_data[ff_data['month'] == 'nov']
-    if selection == 'dec':
-        mydata = ff_data[ff_data['month'] == 'dec']
+    
+    #print(selection, flush=True)
+    if selection != 'all':
+        mydata = mydata[mydata['month'] == selection]
 
     #Heatmap
     count = mydata.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)        
@@ -129,10 +108,8 @@ def update_output(selection):
     img = Image.open("forestfires.jpg")
 
     fig = px.imshow(fires, aspect='auto', color_continuous_scale=[(0, "rgba(0, 0, 0, 0)"), (1, "red")])
-    fig.update_xaxes(range=[1, 9])
-    fig.update_yaxes(range=[1, 9])
-    fig.update_xaxes(showgrid=True, ticklabelmode="period")
-    fig.update_yaxes(showgrid=True, ticklabelmode="period")
+    fig.update_yaxes(type="linear", fixedrange=True, range=(0.5, 9.5))
+    fig.update_xaxes(type="linear", fixedrange=True, range=(0.5, 9.5))
     fig.add_layout_image(
             dict(
                 source=img,
