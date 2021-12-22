@@ -42,7 +42,11 @@ histogram = px.histogram(
 )
 histogram.update_xaxes(title_text='Month')
 histogram.update_yaxes(title_text='Forest fires 2000-2003')
-
+histogram.update_layout(
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=16,
+        font_family="Rockwell"))
 
 ##### Heatmap ######
 
@@ -180,7 +184,12 @@ def update_output(month_option):
                 sizing="stretch",
                 layer="below")
             )
-    
+    fig.update_traces(hovertemplate= 'X-value: %{x}<br>'+'Y-value: %{y}<br>' + 'Fires: %{z}'+"<extra></extra>")
+    fig.update_layout(
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=16,
+        font_family="Rockwell"))
     
     #Update counters
     total = "Total fires in dataset: "+str(len(ff_data))
