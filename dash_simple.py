@@ -18,6 +18,8 @@ from dash import dcc
 from dash import html
 import plotly.express as px
 from PIL import Image
+import numpy as np
+#import plotly.graph_objects as go
 
 
 app = dash.Dash(__name__)
@@ -25,26 +27,18 @@ app.title = "Forest fires in Montesinho Park"
 
 ff_data = pd.read_csv('forestfires.csv', encoding='utf-8')
 
-# month_options = [
-#     {'label': 'January', 'value': 'jan'},
-#     {'label': 'February', 'value': 'feb'},
-#     {'label': 'March', 'value': 'mar'},
-#     {'label': 'April', 'value': 'apr'},
-#     {'label': 'May', 'value': 'may'},
-#     {'label': 'June', 'value': 'jun'},
-#     {'label': 'July', 'value': 'jul'},
-#     {'label': 'August', 'value': 'aug'},
-#     {'label': 'September', 'value': 'sep'},
-#     {'label': 'October', 'value': 'oct'},
-#     {'label': 'November', 'value': 'nov'},
-#     {'label': 'December', 'value': 'dec'}]
-# month_options.append({'label': 'All Months', 'value': 'all'})
-
-#months = ff_data['month'].unique()
 months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 month_options = [{'label': i, 'value': i} for i in months]
 month_options.append({'label': 'All Months', 'value': 'all'})
 
+# Lav liste med lister for hver måned
+totalList = []
+monthlyList = []
+
+for month in months:
+    monthlyList = ff_data.loc[ff_data['month'] == month]
+    totalList.append(monthlyList)
+totalList = np.array(totalList, dtype=object)
 
 # Histogram
 histogram = px.histogram(
@@ -59,20 +53,28 @@ histogram.update_yaxes(title_text='Fires')
 
 # Olivers figurer
 
+#
+#
+#
+#
+#
+#
 
 
+# Dash Layout
 app.layout = html.Div([
                  html.H1(children="Forest fires in Montesinho Park",
                          style = {'textAlign':'center', 'font-family' : 'Roboto'}),        
                  
                  html.Div([
-                     dcc.Checklist(id='selection',
+                     dcc.Dropdown(id='selections',
                          options=month_options,
-                         value=['all'])
+                         value=['all'],
+                         style={'width':'50%','display':'inline-block'})
                 ]),
                  
                  html.Div([
-                     dcc.Graph(id='heatmap') # Her skal figure=heatmap ind, hvis heatmap initialiseres i starten
+                     dcc.Graph(id='heat-map')
                      ]),
                  html.Div([
                      dcc.Graph(id='histogram',
@@ -80,34 +82,62 @@ app.layout = html.Div([
                                )
                  ])
 ])
-                 
 
-@app.callback([
-      Output(component_id='heatmap', component_property='figure')
-      ],
-    [
-      Input(component_id='selection', component_property='value')
-    ]
+
+
+# Callbacks                
+
+@app.callback(
+      Output(component_id='heat-map', component_property='figure')
+      ,
+      Input(component_id='selections', component_property='value')
 )
 
-def update_output(month_option):
+def update_output(selection):
     
     #Pick data for chosen single month(s) or all:
     mydata = ff_data
-    
-    if month_option != 'all':
-        mydata = ff_data.loc[ff_data['month'] == month_option]
-    
+
+    if selection == 'jan':
+        mydata = ff_data[ff_data['month'] == 'jan'] 
+    if selection == 'feb':
+        mydata = ff_data[ff_data['month'] == 'feb']
+    if selection == 'mar':
+        mydata = ff_data[ff_data['month'] == 'mar']
+    if selection == 'apr':
+        mydata = ff_data[ff_data['month'] == 'apr'] 
+    if selection == 'may':
+        mydata = ff_data[ff_data['month'] == 'may']
+    if selection == 'jun':
+        mydata = ff_data[ff_data['month'] == 'jun']
+    if selection == 'juk':
+        mydata = ff_data[ff_data['month'] == 'jul'] 
+    if selection == 'aug':
+        mydata = ff_data[ff_data['month'] == 'aug']
+    if selection == 'sep':
+        mydata = ff_data[ff_data['month'] == 'sep']
+    if selection == 'oct':
+        mydata = ff_data[ff_data['month'] == 'oct'] 
+    if selection == 'nov':
+        mydata = ff_data[ff_data['month'] == 'nov']
+    if selection == 'dec':
+        mydata = ff_data[ff_data['month'] == 'dec']
+
     #Heatmap
-    count = mydata.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)
+    count = mydata.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)        
     fires=count.pivot_table(index='Y', columns='X', values='fires')
     img = Image.open("forestfires.jpg")
-    heatmap = px.imshow(fires, aspect='auto')
-    heatmap.add_layout_image(
+
+    fig = px.imshow(fires, aspect='auto', color_continuous_scale=[(0, "rgba(0, 0, 0, 0)"), (1, "red")])
+    fig.update_xaxes(range=[1, 9])
+    fig.update_yaxes(range=[1, 9])
+    fig.update_xaxes(showgrid=True, ticklabelmode="period")
+    fig.update_yaxes(showgrid=True, ticklabelmode="period")
+    fig.add_layout_image(
             dict(
                 source=img,
-                xref='x domain',
-                yref='y domain',
+                #xref='x domain',
+                #yref='y domain',
                 x=0,
                 y=1,
                 sizex=1,
@@ -116,7 +146,7 @@ def update_output(month_option):
                 layer="below")
             )
     
-    return heatmap
+    return fig
     
 
 ##### Her clickdata
@@ -124,13 +154,6 @@ def update_output(month_option):
 if __name__ == '__main__':
     app.run_server(debug=True, port=8081)
     
-
-
-
-
-
-
-
 
 
 
