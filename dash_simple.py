@@ -31,14 +31,14 @@ months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", 
 month_options = [{'label': i, 'value': i} for i in months]
 month_options.append({'label': 'All Months', 'value': 'all'})
 
-# Lav liste med lister for hver måned
-totalList = []
-monthlyList = []
+# # Lav liste med lister for hver måned
+# totalList = []
+# monthlyList = []
 
-for month in months:
-    monthlyList = ff_data.loc[ff_data['month'] == month]
-    totalList.append(monthlyList)
-totalList = np.array(totalList, dtype=object)
+# for month in months:
+#     monthlyList = ff_data.loc[ff_data['month'] == month]
+#     totalList.append(monthlyList)
+# totalList = np.array(totalList, dtype=object)
 
 # Histogram
 histogram = px.histogram(
@@ -49,6 +49,23 @@ histogram = px.histogram(
 )
 histogram.update_xaxes(title_text='Month')
 histogram.update_yaxes(title_text='Fires')
+
+
+##### Heatmap ######
+
+img = Image.open("forestfires.jpg")
+#create an empty dataset with one entry for each cell on the map
+
+emptyMap = []
+
+for y in range(1, 10):
+
+    for x in range(1, 10):
+
+        emptyMap.append({"X": x, "Y": y, "fires": 0})
+
+emptyFrame = pd.DataFrame(emptyMap) #convert the array to a pandass dataframe
+
 
 
 # Olivers figurer
@@ -90,7 +107,7 @@ app.layout = html.Div([
 @app.callback(
       Output(component_id='heat-map', component_property='figure')
       ,
-      Input(component_id='selections', component_property='value')
+      Input(component_id='selections', component_property='value') # histogram som input
 )
 
 def update_output(selection):
@@ -103,18 +120,25 @@ def update_output(selection):
         mydata = mydata[mydata['month'] == selection]
 
     #Heatmap
-    count = mydata.groupby(['X', 'Y']).size().reset_index(name='fires').fillna(0)        
-    fires=count.pivot_table(index='Y', columns='X', values='fires')
-    img = Image.open("forestfires.jpg")
+    count = mydata.groupby(['X', 'Y'], dropna=False).size().reset_index(name='fires').fillna(0)        
+    
+    merged = pd.concat([emptyFrame, count], axis=0, join='inner') #merge both dataframes on their shared columns
+    
+    fires=merged.pivot_table(index='Y', columns='X', values='fires')
+    fires=fires*2
+    
+    # print(count, flush=True)
+    # print(merged, flush=True)
+    # print(fires, flush=True)
 
     fig = px.imshow(fires, aspect='auto', color_continuous_scale=[(0, "rgba(0, 0, 0, 0)"), (1, "red")])
-    fig.update_yaxes(type="linear", fixedrange=True, range=(0.5, 9.5))
-    fig.update_xaxes(type="linear", fixedrange=True, range=(0.5, 9.5))
+    fig.update_yaxes(fixedrange=True, range=(1, 9.5), dtick=1)
+    fig.update_xaxes(fixedrange=True, range=(0.5, 9.5), dtick=1)
     fig.add_layout_image(
             dict(
                 source=img,
-                #xref='x domain',
-                #yref='y domain',
+                xref='x domain',
+                yref='y domain',
                 x=0,
                 y=1,
                 sizex=1,
@@ -127,6 +151,8 @@ def update_output(selection):
     
 
 ##### Her clickdata
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8081)
