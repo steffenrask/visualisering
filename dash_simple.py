@@ -18,29 +18,22 @@ from dash import dcc
 from dash import html
 import plotly.express as px
 from PIL import Image
-import numpy as np
+#import numpy as np
 #import plotly.graph_objects as go
 
 
 app = dash.Dash(__name__)
-app.title = "Forest fires in Montesinho Park"
+app.title = "Forest fires in Montesinho Natural Park"
 
 ff_data = pd.read_csv('forestfires.csv', encoding='utf-8')
 
 months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-month_options = [{'label': i, 'value': i} for i in months]
+month_options = [{'label': i.capitalize(), 'value': i} for i in months]
 month_options.append({'label': 'All Months', 'value': 'all'})
 
-# # Lav liste med lister for hver måned
-# totalList = []
-# monthlyList = []
 
-# for month in months:
-#     monthlyList = ff_data.loc[ff_data['month'] == month]
-#     totalList.append(monthlyList)
-# totalList = np.array(totalList, dtype=object)
 
-# Histogram
+#### Histogram #####
 histogram = px.histogram(
     ff_data, x="month", category_orders=dict(month=["jan", "feb", "mar", "apr",
                                                     "may", "jun", "jul", "aug",
@@ -48,7 +41,7 @@ histogram = px.histogram(
     range_y=[0,200]
 )
 histogram.update_xaxes(title_text='Month')
-histogram.update_yaxes(title_text='Fires')
+histogram.update_yaxes(title_text='Forest fires 2000-2003')
 
 
 ##### Heatmap ######
@@ -81,18 +74,45 @@ emptyFrame = pd.DataFrame(emptyMap) #convert the array to a pandass dataframe
 # Dash Layout
 app.layout = html.Div([
                  html.H1(children="Forest fires in Montesinho Park",
-                         style = {'textAlign':'center', 'font-family' : 'Roboto'}),        
+                         style = {'textAlign':'center', 'font-family' : 'Roboto'}),   
+                 
+                 html.Div(
+                            className="text-padding",
+                            children=[
+                                "An overview of forest fires in Montesinho Natural Park from January 2000 to December 2003."
+                            ],
+                        ),
+                 
+                 html.P(id="total-fires"),
+                 html.P(id="total-fires-selection"),
+                 
+                 html.Div(
+                            className="text-padding",
+                            children=[
+                                "Select month:"
+                            ],
+                        ),
                  
                  html.Div([
                      dcc.RadioItems(id='selections',
-                         options=month_options,
-                         value='all',
-                         style={'width':'50%','display':'inline-block'})
+                          options=month_options,
+                          value='all',
+                          style={'display':'flex'}
+                          )
                 ]),
+                
                  
                  html.Div([
                      dcc.Graph(id='heat-map')
                      ]),
+                 
+                 html.Div(
+                            className="text-padding",
+                            children=[
+                                "Select month on the histogram to section data in heatmap by month:"
+                            ],
+                        ),
+                 
                  html.Div([
                      dcc.Graph(id='histogram',
                                figure=histogram
@@ -100,24 +120,38 @@ app.layout = html.Div([
                  ])
 ])
 
+##### Callbacks
 
-
-# Callbacks                
-
+# Selected Data in the Histogram updates the values in the month selection
 @app.callback(
-      Output(component_id='heat-map', component_property='figure')
+    Output("selections", "value"),
+    Input("histogram", "clickData"),
+)
+def update_bar_selector(clickData):
+    month_option = 'all'
+    if clickData:
+        month_option = clickData['points'][0]['x']
+    return month_option
+
+
+# Heatmap med RadioItem             
+
+@app.callback([
+      Output(component_id='heat-map', component_property='figure'),
+      Output("total-fires", "children"), 
+      Output("total-fires-selection", "children")]
       ,
-      Input(component_id='selections', component_property='value') # histogram som input
+      Input(component_id='selections', component_property='value')
 )
 
-def update_output(selection):
+def update_output(month_option):
     
     #Pick data for chosen single month(s) or all:
     mydata = ff_data
-    
+
     #print(selection, flush=True)
-    if selection != 'all':
-        mydata = mydata[mydata['month'] == selection]
+    if month_option != 'all':
+        mydata = mydata[mydata['month'] == month_option]
 
     #Heatmap
     count = mydata.groupby(['X', 'Y'], dropna=False).size().reset_index(name='fires').fillna(0)        
@@ -132,8 +166,8 @@ def update_output(selection):
     # print(fires, flush=True)
 
     fig = px.imshow(fires, aspect='auto', color_continuous_scale=[(0, "rgba(0, 0, 0, 0)"), (1, "red")])
-    fig.update_yaxes(fixedrange=True, range=(1, 9.5), dtick=1)
-    fig.update_xaxes(fixedrange=True, range=(0.5, 9.5), dtick=1)
+    fig.update_yaxes(fixedrange=True, range=(1, 9.5), dtick=1, showgrid=False)
+    fig.update_xaxes(fixedrange=True, range=(0.5, 9.5), dtick=1, showgrid=False)
     fig.add_layout_image(
             dict(
                 source=img,
@@ -147,10 +181,13 @@ def update_output(selection):
                 layer="below")
             )
     
-    return fig
     
-
-##### Her clickdata
+    #Update counters
+    total = "Total fires in dataset: "+str(len(ff_data))
+    total_sel = "Total fires in selection: "+str(len(mydata))
+    
+    return fig, total, total_sel
+    
 
 
 
